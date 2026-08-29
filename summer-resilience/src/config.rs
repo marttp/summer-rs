@@ -16,6 +16,10 @@ pub struct ResilienceConfig {
     /// Named circuit breaker policies.
     #[serde(default)]
     pub circuit_breaker: CircuitBreakerPoliciesConfig,
+
+    /// Named timeout policies.
+    #[serde(default)]
+    pub timeout: TimeoutPoliciesConfig,
 }
 
 /// Collection of named retry policy instances.
@@ -51,6 +55,30 @@ impl Default for CircuitBreakerConfig {
         Self {
             failure_threshold: default_failure_threshold(),
             wait_duration_in_open_state: default_wait_duration_in_open_state(),
+        }
+    }
+}
+
+/// Collection of named timeout policy instances.
+#[derive(Debug, Default, Clone, JsonSchema, Deserialize)]
+pub struct TimeoutPoliciesConfig {
+    /// Policies keyed by the name used in `#[timeout(name = "...")]`.
+    #[serde(default)]
+    pub instances: HashMap<String, TimeoutConfig>,
+}
+
+/// Configuration for one timeout policy.
+#[derive(Debug, Clone, JsonSchema, Deserialize)]
+pub struct TimeoutConfig {
+    /// Maximum operation duration, in milliseconds.
+    #[serde(default = "default_timeout_duration")]
+    pub timeout_duration: u64,
+}
+
+impl Default for TimeoutConfig {
+    fn default() -> Self {
+        Self {
+            timeout_duration: default_timeout_duration(),
         }
     }
 }
@@ -122,4 +150,8 @@ const fn default_failure_threshold() -> u32 {
 
 const fn default_wait_duration_in_open_state() -> u64 {
     60_000
+}
+
+const fn default_timeout_duration() -> u64 {
+    1_000
 }
