@@ -6,14 +6,19 @@
 pub mod circuit_breaker;
 pub mod config;
 pub mod retry;
+pub mod timeout;
 
 pub use circuit_breaker::{
     execute as execute_circuit_breaker, CallNotPermitted, CircuitBreaker,
     CircuitBreakerConfigError, CircuitBreakerError, CircuitBreakerRegistry, CircuitBreakerState,
 };
-pub use config::{CircuitBreakerConfig, ResilienceConfig, RetryConfig};
+pub use config::{CircuitBreakerConfig, ResilienceConfig, RetryConfig, TimeoutConfig};
 pub use retry::{execute as execute_retry, RetryConfigError, RetryPolicy, RetryRegistry};
-pub use summer_macros::{circuit_breaker, retry};
+pub use summer_macros::{circuit_breaker, retry, timeout};
+pub use timeout::{
+    execute as execute_timeout, TimeoutConfigError, TimeoutElapsed, TimeoutError, TimeoutPolicy,
+    TimeoutRegistry,
+};
 
 use summer::config::ConfigRegistry;
 use summer::plugin::MutableComponentRegistry;
@@ -33,7 +38,10 @@ impl Plugin for ResiliencePlugin {
         let circuit_breaker_registry =
             CircuitBreakerRegistry::from_configs(config.circuit_breaker.instances)
                 .expect("resilience circuit breaker config validation failed");
+        let timeout_registry = TimeoutRegistry::from_configs(config.timeout.instances)
+            .expect("resilience timeout config validation failed");
         app.add_component(retry_registry);
         app.add_component(circuit_breaker_registry);
+        app.add_component(timeout_registry);
     }
 }

@@ -1,0 +1,6 @@
+[web]
+binding = "127.0.0.1"
+port = 18083
+
+[resilience.timeout.instances.fx-quotes]
+timeout_duration = 50

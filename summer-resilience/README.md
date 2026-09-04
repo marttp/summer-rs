@@ -86,3 +86,33 @@ async fn load_inventory(id: String) -> Result<String, InventoryError> {
 The function error type must implement `From<CallNotPermitted>`, making rejected calls explicit.
 Operation errors count as failures by default. Use `record_failure = predicate_name` to classify
 which errors should affect the circuit breaker.
+
+## Timeout configuration
+
+```toml
+[resilience.timeout.instances.inventory]
+timeout_duration = 1000
+```
+
+Apply the deadline to an asynchronous function:
+
+```rust,ignore
+use summer_resilience::{timeout, TimeoutElapsed};
+
+#[derive(Debug, thiserror::Error)]
+enum InventoryError {
+    #[error("inventory dependency failed")]
+    Dependency,
+    #[error(transparent)]
+    TimedOut(#[from] TimeoutElapsed),
+}
+
+#[timeout(name = "inventory")]
+async fn load_inventory(id: String) -> Result<String, InventoryError> {
+    inventory_client().load(id).await
+}
+```
+
+The function error type must implement `From<TimeoutElapsed>`. If the deadline elapses, the
+operation future is dropped. Dropping a Rust future cancels further polling, but it cannot undo
+external side effects that the operation already started.

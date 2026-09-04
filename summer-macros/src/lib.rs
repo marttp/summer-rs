@@ -17,6 +17,7 @@ mod retry;
 #[cfg(feature = "socket_io")]
 mod socketioxide;
 mod stream;
+mod timeout;
 mod utils;
 
 use proc_macro::TokenStream;
@@ -701,6 +702,14 @@ pub fn retry(args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn circuit_breaker(args: TokenStream, input: TokenStream) -> TokenStream {
     circuit_breaker::circuit_breaker(args, input)
+}
+
+/// Applies a named `summer-resilience` deadline to an asynchronous function.
+///
+/// The function's error type must implement `From<TimeoutElapsed>`.
+#[proc_macro_attribute]
+pub fn timeout(args: TokenStream, input: TokenStream) -> TokenStream {
+    timeout::timeout(args, input)
 }
 
 #[cfg(feature = "socket_io")]
